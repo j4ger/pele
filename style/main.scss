@@ -1,4 +1,3 @@
-body {
-	font-family: sans-serif;
-	text-align: center;
-}
+@use '../sprucecss/scss/spruce' as *;
+
+@include generate-styles;

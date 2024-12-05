@@ -1,3 +1,6 @@
 [submodule "bulma"]
 	path = bulma
 	url = https://github.com/jgthms/bulma.git
+[submodule "sprucecss"]
+	path = sprucecss
+	url = https://github.com/conedevelopment/sprucecss.git
