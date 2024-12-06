@@ -1,4 +1,15 @@
 pub mod app;
+pub mod config;
+pub mod subscription;
+pub mod target;
+pub mod ui;
+
+#[cfg(feature = "ssr")]
+pub mod message;
+#[cfg(feature = "ssr")]
+pub mod server;
+#[cfg(feature = "ssr")]
+pub mod template;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

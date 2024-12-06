@@ -1,4 +1,3 @@
-
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
@@ -7,9 +6,12 @@ async fn main() {
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use pele::app::*;
+    use pele::server::{server_init, CONFIG};
+
+    tracing_subscriber::fmt().init();
 
     let conf = get_configuration(None).unwrap();
-    let addr = conf.leptos_options.site_addr;
+    let addr = format!("{}:{}", CONFIG.server.address, CONFIG.server.port);
     let leptos_options = conf.leptos_options;
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(App);
@@ -21,6 +23,8 @@ async fn main() {
         })
         .fallback(leptos_axum::file_and_error_handler(shell))
         .with_state(leptos_options);
+
+    server_init().await;
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
