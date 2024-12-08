@@ -1,16 +1,12 @@
 #[cfg(feature = "ssr")]
-use figment::{
-    providers::{Env, Format, Serialized, Toml},
-    Figment,
-};
-
-#[cfg(feature = "ssr")]
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "ssr", derive(Serialize, Deserialize))]
 pub struct ServerConfig {
     pub address: String,
     pub port: u16,
+    pub queue_size: usize,
 }
 
 impl Default for ServerConfig {
@@ -19,10 +15,12 @@ impl Default for ServerConfig {
         Self {
             address: "0.0.0.0".to_string(),
             port: 1145,
+            queue_size: 32,
         }
     }
 }
 
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "ssr", derive(Serialize, Deserialize))]
 pub struct RssConfig {
     pub rsshub_url: String,
@@ -39,6 +37,7 @@ impl Default for RssConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "ssr", derive(Serialize, Deserialize))]
 pub struct PushConfig {
     pub default_interval: u64,
@@ -52,7 +51,7 @@ impl Default for PushConfig {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "ssr", derive(Serialize, Deserialize))]
 pub struct Config {
     pub server: ServerConfig,
@@ -75,11 +74,28 @@ pub fn rss_hub_url_transform(url: &str) -> String {
 }
 
 #[cfg(feature = "ssr")]
-impl Config {
-    pub fn new() -> Result<Self, figment::Error> {
-        Figment::from(Serialized::defaults(Config::default()))
-            .merge(Toml::file("pele.toml"))
-            .merge(Env::prefixed("PELE_"))
-            .extract()
+pub use server::*;
+
+#[cfg(feature = "ssr")]
+mod server {
+    use anyhow::Context;
+    use figment::{
+        providers::{Env, Format, Serialized, Toml},
+        Figment,
+    };
+
+    impl super::Config {
+        pub fn load() -> Result<Self, figment::Error> {
+            Figment::from(Serialized::defaults(super::Config::default()))
+                .merge(Toml::file("pele.toml"))
+                .merge(Env::prefixed("PELE_"))
+                .extract()
+        }
+
+        pub fn save(&self) -> anyhow::Result<()> {
+            let toml = toml::to_string(self).context("Failed to serialize config.")?;
+            std::fs::write("pele.toml", toml).context("Failed to write config to disk.")?;
+            Ok(())
+        }
     }
 }

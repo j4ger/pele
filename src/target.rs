@@ -1,13 +1,5 @@
-#[cfg(feature = "ssr")]
-use figment::{
-    providers::{Format, Serialized, Toml},
-    Figment,
-};
-
-#[cfg(feature = "ssr")]
-use serde::{Deserialize, Serialize};
-
-#[cfg_attr(feature = "ssr", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "ssr", derive(serde::Serialize, serde::Deserialize))]
 pub struct Target {
     pub id: usize,
     pub name: String,
@@ -16,11 +8,25 @@ pub struct Target {
 }
 
 #[cfg(feature = "ssr")]
-pub fn load_targets() -> Result<Vec<Target>, figment::Error> {
-    Figment::from(Serialized::defaults(Vec::<Target>::default()))
-        .merge(Toml::file("targets.toml"))
-        .extract()
-}
+pub use server::*;
 
 #[cfg(feature = "ssr")]
-pub async fn handle_target(target: Target) {}
+mod server {
+    use anyhow::Context;
+    use figment::{
+        providers::{Format, Serialized, Toml},
+        Figment,
+    };
+
+    pub fn load_targets() -> Result<Vec<super::Target>, figment::Error> {
+        Figment::from(Serialized::defaults(Vec::<super::Target>::default()))
+            .merge(Toml::file("targets.toml"))
+            .extract()
+    }
+
+    pub fn save_targets(targets: &[super::Target]) -> anyhow::Result<()> {
+        let toml = toml::to_string(targets).context("Failed to serialize targets.")?;
+        std::fs::write("targets.toml", toml).context("Failed to write targets to disk.")?;
+        Ok(())
+    }
+}

@@ -6,25 +6,33 @@ async fn main() {
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use pele::app::*;
-    use pele::server::{server_init, CONFIG};
+    use pele::config::Config;
+    use pele::server::server_init;
 
     tracing_subscriber::fmt().init();
 
-    let conf = get_configuration(None).unwrap();
-    let addr = format!("{}:{}", CONFIG.server.address, CONFIG.server.port);
-    let leptos_options = conf.leptos_options;
+    let config = Config::load().unwrap();
+    let leptos_config = get_configuration(None).unwrap();
+    let addr = format!("{}:{}", config.server.address, config.server.port);
+    let leptos_options = leptos_config.leptos_options;
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(App);
 
     let app = Router::new()
-        .leptos_routes(&leptos_options, routes, {
-            let leptos_options = leptos_options.clone();
-            move || shell(leptos_options.clone())
-        })
+        .leptos_routes_with_context(
+            &leptos_options,
+            routes,
+            move || {
+                let app_state = server_init(config.clone());
+                provide_context(app_state)
+            },
+            {
+                let leptos_options = leptos_options.clone();
+                move || shell(leptos_options.clone())
+            },
+        )
         .fallback(leptos_axum::file_and_error_handler(shell))
         .with_state(leptos_options);
-
-    server_init().await;
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
