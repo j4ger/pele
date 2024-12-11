@@ -1,0 +1,2 @@
+dev:
+  LEPTOS_TAILWIND_VERSION=v3.4.16 LEPTOS_SASS_VERSION=1.82.0 cargo leptos watch

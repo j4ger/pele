@@ -19,6 +19,8 @@
       {
         devShells.default = mkShell {
           buildInputs = [
+            just
+            bun
             openssl
             pkg-config
             cacert

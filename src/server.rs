@@ -43,8 +43,8 @@ pub struct AppState {
 pub fn server_init(config: Config) -> AppState {
     // make AppState
     let (broadcast_sender, _) = broadcast::channel(config.server.queue_size);
-    let targets = load_targets().unwrap();
-    let mut subscriptions = load_subscriptions().unwrap();
+    let targets = load_targets();
+    let mut subscriptions = load_subscriptions();
     let handlers = DashMap::new();
 
     // spawn target handlers and subscription handlers

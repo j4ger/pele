@@ -18,16 +18,17 @@ mod server {
     use anyhow::Context;
     use chrono::DateTime;
     use figment::{
-        providers::{Format, Serialized, Toml},
+        providers::{Format, Toml},
         Figment,
     };
     use rss::{Channel, Item};
     use tracing::warn;
 
-    pub fn load_subscriptions() -> Result<Vec<super::Subscription>, figment::Error> {
-        Figment::from(Serialized::defaults(Vec::<super::Subscription>::default()))
+    pub fn load_subscriptions() -> Vec<super::Subscription> {
+        Figment::new()
             .merge(Toml::file("subscriptions.toml"))
             .extract()
+            .unwrap_or(Vec::new()) // TODO: might be a source of error
     }
 
     pub fn save_subscriptions(subscriptions: &[super::Subscription]) -> anyhow::Result<()> {

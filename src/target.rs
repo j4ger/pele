@@ -18,10 +18,11 @@ mod server {
         Figment,
     };
 
-    pub fn load_targets() -> Result<Vec<super::Target>, figment::Error> {
-        Figment::from(Serialized::defaults(Vec::<super::Target>::default()))
+    pub fn load_targets() -> Vec<super::Target> {
+        Figment::from(Serialized::defaults(Vec::<super::Target>::new()))
             .merge(Toml::file("targets.toml"))
             .extract()
+            .unwrap_or(Vec::new())
     }
 
     pub fn save_targets(targets: &[super::Target]) -> anyhow::Result<()> {
